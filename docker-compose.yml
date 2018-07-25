@@ -1,0 +1,108 @@
+version: '3.1'
+services:
+
+  redis-master:
+    image: vision/redis
+    container_name: redis-master
+    restart: on-failure:5
+    build:
+      context: ./redis
+    ports:
+      - "${MASTER_PORT}:6379"
+    environment:
+      - HOST_IP=${HOST_IP}
+    secrets:
+      - redis-auth
+
+  redis-slave-0:
+    image: vision/redis
+    container_name: redis-slave-0
+    restart: on-failure:5
+    ports:
+      - "${SLAVE0_PORT}:6379"
+    environment:
+      - SLAVE=true
+      - HOST_IP=${HOST_IP}
+      - PORT=${SLAVE0_PORT}
+      - MASTER_PORT=${MASTER_PORT}
+    secrets:
+      - redis-auth
+    links:
+      - redis-master
+
+  redis-slave-1:
+    image: vision/redis
+    container_name: redis-slave-1
+    restart: on-failure:5
+    ports:
+      - "${SLAVE1_PORT}:6379"
+    environment:
+      - SLAVE=true
+      - HOST_IP=${HOST_IP}
+      - PORT=${SLAVE1_PORT}
+      - MASTER_PORT=${MASTER_PORT}
+    secrets:
+      - redis-auth
+    links:
+      - redis-master
+
+  redis-sentinel-0:
+    image: vision/redis
+    container_name: redis-sentinel-0
+    restart: on-failure:5
+    ports:
+      - "${SENTINEL0_PORT}:26379"
+    environment:
+      - SENTINEL=true
+      - HOST_IP=${HOST_IP}
+      - PORT=${SENTINEL0_PORT}
+      - MASTER_PORT=${MASTER_PORT}
+      - SENTINEL_QUORUM=2
+      - SENTINEL_DOWN_AFTER=1000
+      - SENTINEL_FAILOVER=1000
+    secrets:
+      - redis-auth
+    links:
+      - redis-master
+
+  redis-sentinel-1:
+    image: vision/redis
+    container_name: redis-sentinel-1
+    restart: on-failure:5
+    ports:
+      - "${SENTINEL1_PORT}:26379"
+    environment:
+      - SENTINEL=true
+      - HOST_IP=${HOST_IP}
+      - PORT=${SENTINEL1_PORT}
+      - MASTER_PORT=${MASTER_PORT}
+      - SENTINEL_QUORUM=2
+      - SENTINEL_DOWN_AFTER=1000
+      - SENTINEL_FAILOVER=1000
+    secrets:
+      - redis-auth
+    links:
+      - redis-master
+
+  redis-sentinel-2:
+    image: vision/redis
+    container_name: redis-sentinel-2
+    restart: on-failure:5
+    ports:
+      - "${SENTINEL2_PORT}:26379"
+    environment:
+      - SENTINEL=true
+      - HOST_IP=${HOST_IP}
+      - PORT=${SENTINEL2_PORT}
+      - MASTER_PORT=${MASTER_PORT}
+      - SENTINEL_QUORUM=2
+      - SENTINEL_DOWN_AFTER=1000
+      - SENTINEL_FAILOVER=1000
+    secrets:
+      - redis-auth
+    links:
+      - redis-master
+
+secrets:
+  redis-auth:
+    file: redis-auth-secret.txt
